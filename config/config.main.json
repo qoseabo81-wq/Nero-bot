@@ -16,13 +16,13 @@
     "LANGUAGE": "ar_SY",
     "LOG_LEVEL": 1,
     "MODERATORS": [
-        "100054677207079"
+        "100019463832721"
     ],
     "ABSOLUTES": [
-        "100054677207079"
+        "100019463832721"
     ],
     "NAME": "dora",
-    "PREFIX": "x",
+    "PREFIX": "*",
     "timezone": "Asia/Ho_Chi_Minh",
     "REFRESH": "43200000",
     "MAX_BALANCE_LIMIT": "-1"
