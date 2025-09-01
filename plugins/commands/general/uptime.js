@@ -1,5 +1,5 @@
 const config = {
-    name: "uptime",
+    name: "وقت تشغيل",
     aliases: ["upt"],
     credits: "XaviaTeam"
 }
