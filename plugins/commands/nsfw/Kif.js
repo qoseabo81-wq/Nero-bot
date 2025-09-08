@@ -6,14 +6,14 @@ module.exports = {
     author: "عمر",
     countDown: 5,
     role: 0,
-    shortDescription: "يسألك أسئلة أو يعطيك ردود صراحة عشوائية",
+    shortDescription: "البوت يعطيك ردود صراحة عشوائية",
     longDescription: "البوت يرد عليك بكلام عشوائي عن جمالك أو شخصيتك",
     category: "fun",
     guide: "{pn}"
   },
 
   onStart: async function ({ api, event, args }) {
-    const tl = [
+    const messages = [
       "ايش هذا القبح",
       "مثل الركبة",
       "حاول تعتني بشكلك",
@@ -35,7 +35,8 @@ module.exports = {
       "انت أروع مما ينكتب بالكلام"
     ];
 
-    const randomMsg = tl[Math.floor(Math.random() * tl.length)];
-    return api.sendMessage(randomMsg, event.threadID, event.messageID);
+    const randomMsg = messages[Math.floor(Math.random() * messages.length)];
+    
+    return api.sendMessage(randomMsg, event.threadID);
   }
 };
