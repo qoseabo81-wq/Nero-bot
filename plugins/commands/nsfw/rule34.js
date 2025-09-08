@@ -1,5 +1,5 @@
 const config = {
-    name: "rule34",
+    name: "34",
     description: "Rule34 search",
     usage: "[keyword]",
     cooldown: 5,
