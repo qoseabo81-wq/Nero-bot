@@ -1,6 +1,6 @@
 module.exports = {
   config: {
-    name: "كيف_تراني",
+    name: "كيف تراني",
     aliases: ["كيفتراني", "askme"],
     version: "1.0",
     author: "عمر",
