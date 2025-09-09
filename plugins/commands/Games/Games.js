@@ -10,7 +10,7 @@ const tempImageFilePath = path.join(__dirname, "../../cache/tempImage.jpg");
 const cacheDir = path.dirname(tempImageFilePath);
 if (!fs.existsSync(cacheDir)) fs.mkdirSync(cacheDir, { recursive: true });
 
-// مصفوفة لتخزين الرسائل المعلقة مؤقتًا
+// مصفوفة لتخزين الأسئلة المعلقة
 let handleReply = [];
 
 const config = {
@@ -24,6 +24,7 @@ const config = {
   commandCategory: "العاب"
 };
 
+// قائمة الأسئلة
 const questions = [
   { image: "https://i.pinimg.com/originals/6f/a0/39/6fa0398e640e5545d94106c2c42d2ff8.jpg", answer: "العراق" },
   { image: "https://upload.wikimedia.org/wikipedia/commons/thumb/0/05/Flag_of_Brazil.svg/256px-Flag_of_Brazil.svg.png", answer: "البرازيل" },
@@ -49,11 +50,11 @@ export async function onCall({ message, Currencies }) {
       attachment
     });
 
-    // تسجيل الرسالة في handleReply
+    // تسجيل السؤال مع علامة لم يتم الإجابة عليه بعد
     handleReply.push({
       messageID: sentMessage.messageID,
       correctAnswer,
-      answered: false // لتتبع أول شخص يجيب فقط
+      answered: false
     });
 
   } catch (error) {
@@ -67,9 +68,9 @@ export async function onReply({ message, Currencies }) {
   try {
     const userAnswer = message.body.trim().toLowerCase();
 
-    // البحث عن الرد المناسب
-    const current = handleReply.find(x => x.answered === false);
-    if (!current) return; // تم الإجابة بالفعل أو لا توجد أسئلة
+    // العثور على السؤال غير المجاب عنه بعد
+    const current = handleReply.find(x => !x.answered);
+    if (!current) return; // تم الإجابة أو لا توجد أسئلة
 
     if (userAnswer === current.correctAnswer) {
       await Currencies.increaseMoney(message.senderID, 50);
