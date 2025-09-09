@@ -25,7 +25,8 @@ const langData = {
 /** @type {TOnCallCommand} */
 async function onCall({ message, global, Currencies }) {
   try {
-    // تأكد من وجود handleReply
+    // تأكد من وجود global.client و handleReply
+    if (!global.client) global.client = {};
     if (!global.client.handleReply) global.client.handleReply = [];
 
     // قائمة كاملة بالأسئلة مع الصور
@@ -71,7 +72,7 @@ async function onCall({ message, global, Currencies }) {
 }
 
 /** @type {TOnReplyCommand} */
-async function onReply({ message, handleReply, Currencies }) {
+async function onReply({ message, handleReply, Currencies, global }) {
   try {
     const userAnswer = message.body.trim().toLowerCase();
 
@@ -83,10 +84,12 @@ async function onReply({ message, handleReply, Currencies }) {
     }
 
     // إزالة الرسالة من handleReply بعد الرد
-    const index = global.client.handleReply.findIndex(
-      (x) => x.messageID === handleReply.messageID
-    );
-    if (index !== -1) global.client.handleReply.splice(index, 1);
+    if (global.client && global.client.handleReply) {
+      const index = global.client.handleReply.findIndex(
+        (x) => x.messageID === handleReply.messageID
+      );
+      if (index !== -1) global.client.handleReply.splice(index, 1);
+    }
 
   } catch (error) {
     console.error(error);
