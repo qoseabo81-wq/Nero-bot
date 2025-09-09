@@ -1,13 +1,24 @@
 import fs from "fs";
+import path from "path";
 import axios from "axios";
+import { fileURLToPath } from "url";
 
-const tempImageFilePath = "./cache/tempImage.jpg";
+// حل مشكلة المسارات مع ES Modules
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+
+// المسار المطلق للملف المؤقت
+const tempImageFilePath = path.join(__dirname, "../../cache/tempImage.jpg");
+
+// تأكد من وجود مجلد cache
+const cacheDir = path.dirname(tempImageFilePath);
+if (!fs.existsSync(cacheDir)) fs.mkdirSync(cacheDir, { recursive: true });
 
 // مصفوفة لتخزين الرسائل المعلقة مؤقتًا
 let handleReply = [];
 
 const config = {
-  name: "بلد",
+  name: "دول",
   aliases: ["اعلام"],
   permissions: [0],
   description: "لعبة احزر العلم",
