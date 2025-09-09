@@ -4,7 +4,7 @@ import axios from "axios";
 const tempImageFilePath = "./cache/tempImage.jpg";
 
 const config = {
-  name: "اعلام",
+  name: "دول",
   aliases: ["اعلام"],
   permissions: [0],
   description: "لعبة احزر العلم",
