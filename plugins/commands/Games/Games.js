@@ -10,7 +10,7 @@ const tempImageFilePath = path.join(__dirname, "../../cache/tempImage.jpg");
 const cacheDir = path.dirname(tempImageFilePath);
 if (!fs.existsSync(cacheDir)) fs.mkdirSync(cacheDir, { recursive: true });
 
-// مصفوفة لتخزين الأسئلة المعلقة محليًا (اختياري)
+// تخزين الأسئلة المعلقة محليًا
 let handleReply = [];
 
 const config = {
@@ -34,8 +34,9 @@ const questions = [
 ];
 
 /** تشغيل الأمر */
-export async function onCall({ message, xDB }) {
+export async function onCall({ message, Currencies }) {
     try {
+        // اختيار سؤال عشوائي
         const randomQuestion = questions[Math.floor(Math.random() * questions.length)];
         const correctAnswer = randomQuestion.answer.toLowerCase();
 
@@ -45,25 +46,32 @@ export async function onCall({ message, xDB }) {
 
         const attachment = [fs.createReadStream(tempImageFilePath)];  
 
+        // إرسال السؤال
         const sentMessage = await message.reply({  
             body: "ما اسم علم هذه الدولة؟",  
             attachment  
         });  
 
-        // تسجيل الرسالة كـ Reply Event مع callback للتحقق من الإجابة
+        // تسجيل Reply Event مع callback يستخدم Currencies الممرر
         sentMessage.addReplyEvent({
             callback: async ({ message }) => {
                 try {
                     const userAnswer = message.body.trim().toLowerCase();
+
                     if (userAnswer === correctAnswer) {
-                        await xDB.Currencies.increaseMoney(message.senderID, 50);
+                        // إضافة المال
+                        await Currencies.increaseMoney(message.senderID, 50);
                         await message.reply("✅ تهانينا! إجابتك صحيحة، لقد حصلت على 50 دولار");
                     } else {
                         await message.reply("❌ إجابة خاطئة، حاول مرة أخرى");
+                        return; // لا نعلم السؤال كمجاب بعد
                     }
 
-                    // علامة على أن السؤال تم الإجابة عليه
+                    // تعليم السؤال كمجاب
                     handleReply = handleReply.map(item => item.messageID === sentMessage.messageID ? { ...item, answered: true } : item);
+
+                    // حذف الصورة بعد الإجابة (اختياري)
+                    if (fs.existsSync(tempImageFilePath)) fs.unlinkSync(tempImageFilePath);
 
                 } catch (err) {
                     console.error(err);
@@ -72,7 +80,7 @@ export async function onCall({ message, xDB }) {
             }
         });
 
-        // تخزين السؤال في مصفوفة محلية (اختياري)
+        // حفظ السؤال في المصفوفة المحلية (اختياري لتتبع)
         handleReply.push({  
             messageID: sentMessage.messageID,  
             correctAnswer,  
