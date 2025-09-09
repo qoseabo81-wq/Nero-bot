@@ -1,14 +1,7 @@
 import fs from "fs";
 import axios from "axios";
-import path from "path";
 
-// تأكد من وجود مجلد cache
-const cacheDir = path.resolve("./cache");
-if (!fs.existsSync(cacheDir)) {
-    fs.mkdirSync(cacheDir, { recursive: true });
-}
-
-const tempImageFilePath = path.join(cacheDir, "tempImage.jpg");
+const tempImageFilePath = "./cache/tempImage.jpg";
 
 const config = {
   name: "اعلام",
@@ -35,26 +28,40 @@ async function onCall({ message, global, Currencies }) {
     const questions = [
       { image: "https://i.pinimg.com/originals/6f/a0/39/6fa0398e640e5545d94106c2c42d2ff8.jpg", answer: "العراق" },
       { image: "https://upload.wikimedia.org/wikipedia/commons/thumb/0/05/Flag_of_Brazil.svg/256px-Flag_of_Brazil.svg.png", answer: "البرازيل" },
-      // أضف بقية الأسئلة هنا كما في قائمتك
+      { image: "https://i.pinimg.com/originals/66/38/a1/6638a104725f4fc592c1b832644182cc.jpg", answer: "فلسطين" },
+      { image: "https://i.pinimg.com/originals/f9/47/0e/f9470ea33ff6fbf794b0b8bb00a5ccb4.jpg", answer: "المغرب" }
+      // أضف باقي الأسئلة هنا...
     ];
 
-    // اختيار سؤال عشوائي
     const randomQuestion = questions[Math.floor(Math.random() * questions.length)];
     const correctAnswer = randomQuestion.answer;
 
-    // تحميل الصورة
-    const response = await axios.get(randomQuestion.image, { responseType: "arraybuffer" });
-    fs.writeFileSync(tempImageFilePath, Buffer.from(response.data, "binary"));
+    // تحميل الصورة مؤقتاً
+    const imageResponse = await axios.get(randomQuestion.image, { responseType: "arraybuffer" });
+    fs.writeFileSync(tempImageFilePath, Buffer.from(imageResponse.data, "binary"));
 
-    // إرسال السؤال مع الصورة
     const attachment = [fs.createReadStream(tempImageFilePath)];
-    await message.reply({ body: langData.ar_SY.question, attachment });
+    const messageSent = await message.reply({ body: langData.ar_SY.question, attachment });
 
-    // انتظار الرد (يمكنك إضافة handleReply أو أي طريقة تحقق حسب بوتك)
+    // تسجيل handleReply
     global.client.handleReply.push({
       name: config.name,
-      messageID: message.messageID,
-      correctAnswer
+      messageID: messageSent.messageID,
+      correctAnswer,
+      async onReply({ message: replyMsg, handleReply }) {
+        const userAnswer = replyMsg.body.trim().toLowerCase();
+        const correct = handleReply.correctAnswer.toLowerCase();
+
+        if (userAnswer === correct) {
+          await Currencies.increaseMoney(replyMsg.senderID, 50);
+          await replyMsg.reply(langData.ar_SY.correct);
+        } else {
+          await replyMsg.reply(langData.ar_SY.wrong);
+        }
+
+        // مسح الصورة بعد الرد
+        if (fs.existsSync(tempImageFilePath)) fs.unlinkSync(tempImageFilePath);
+      }
     });
 
   } catch (error) {
