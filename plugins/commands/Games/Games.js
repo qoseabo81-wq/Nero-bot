@@ -23,14 +23,14 @@ const langData = {
 };
 
 /** @type {TOnCallCommand} */
-async function onCall({ message, global, Currencies }) {
+async function onCall({ message, Currencies }) {
   try {
     const questions = [
       { image: "https://i.pinimg.com/originals/6f/a0/39/6fa0398e640e5545d94106c2c42d2ff8.jpg", answer: "العراق" },
       { image: "https://upload.wikimedia.org/wikipedia/commons/thumb/0/05/Flag_of_Brazil.svg/256px-Flag_of_Brazil.svg.png", answer: "البرازيل" },
       { image: "https://i.pinimg.com/originals/66/38/a1/6638a104725f4fc592c1b832644182cc.jpg", answer: "فلسطين" },
       { image: "https://i.pinimg.com/originals/f9/47/0e/f9470ea33ff6fbf794b0b8bb00a5ccb4.jpg", answer: "المغرب" }
-      // أضف باقي الأسئلة هنا...
+      // أضف باقي الأسئلة هنا
     ];
 
     const randomQuestion = questions[Math.floor(Math.random() * questions.length)];
@@ -43,8 +43,8 @@ async function onCall({ message, global, Currencies }) {
     const attachment = [fs.createReadStream(tempImageFilePath)];
     const messageSent = await message.reply({ body: langData.ar_SY.question, attachment });
 
-    // تسجيل handleReply
-    global.client.handleReply.push({
+    // تسجيل handleReply بشكل صحيح
+    message.client.handleReply.push({
       name: config.name,
       messageID: messageSent.messageID,
       correctAnswer,
