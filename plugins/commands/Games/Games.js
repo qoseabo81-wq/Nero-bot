@@ -1,11 +1,5 @@
 import fs from "fs";
 import axios from "axios";
-import path from "path";
-
-const cacheDir = path.resolve("./cache");
-if (!fs.existsSync(cacheDir)) fs.mkdirSync(cacheDir);
-
-const tempImageFilePath = path.join(cacheDir, "tempImage.jpg");
 
 const config = {
   name: "اعلام",
@@ -29,61 +23,63 @@ const langData = {
 /** @type {TOnCallCommand} */
 async function onCall({ message, global, Currencies }) {
   try {
+    // إنشاء مجلد cache إذا لم يكن موجود
+    if (!fs.existsSync("./cache")) fs.mkdirSync("./cache");
+
+    // قائمة الأسئلة مع الصور
     const questions = [
       { image: "https://i.pinimg.com/originals/6f/a0/39/6fa0398e640e5545d94106c2c42d2ff8.jpg", answer: "العراق" },
       { image: "https://upload.wikimedia.org/wikipedia/commons/thumb/0/05/Flag_of_Brazil.svg/256px-Flag_of_Brazil.svg.png", answer: "البرازيل" },
       { image: "https://i.pinimg.com/originals/66/38/a1/6638a104725f4fc592c1b832644182cc.jpg", answer: "فلسطين" },
-      // ... أضف باقي الأسئلة كما هي
+      { image: "https://i.pinimg.com/originals/f9/47/0e/f9470ea33ff6fbf794b0b8bb00a5ccb4.jpg", answer: "المغرب" },
+      { image: "https://i.pinimg.com/originals/2d/a2/6e/2da26e58efd5f32fe2e33b9654907ab5.gif", answer: "الصومال" }
+      // يمكنك إضافة باقي الدول هنا
     ];
 
+    // اختيار سؤال عشوائي
     const randomQuestion = questions[Math.floor(Math.random() * questions.length)];
-    const correctAnswer = randomQuestion.answer;
 
-    // تحميل الصورة
-    const imageResponse = await axios.get(randomQuestion.image, { responseType: "arraybuffer" });
-    fs.writeFileSync(tempImageFilePath, Buffer.from(imageResponse.data, "binary"));
+    // تحميل الصورة مؤقتًا
+    const tempImagePath = "./cache/tempImage.jpg";
+    const response = await axios.get(randomQuestion.image, { responseType: "arraybuffer" });
+    fs.writeFileSync(tempImagePath, Buffer.from(response.data, "binary"));
 
-    const attachment = [fs.createReadStream(tempImageFilePath)];
-
-    const info = await message.reply({ body: langData.ar_SY.question, attachment });
-
-    // تخزين handleReply
-    global.client.handleReply.push({
-      name: config.name,
-      messageID: info.messageID,
-      correctAnswer
+    // إرسال السؤال مع الصورة
+    const sentMessage = await message.reply({
+      body: langData.ar_SY.question,
+      attachment: fs.createReadStream(tempImagePath)
     });
 
-  } catch (error) {
-    console.error(error);
-    await message.reply(`حدث خطأ: ${error.message}`);
+    // تسجيل handleReply للإجابة
+    global.client.handleReply.push({
+      name: config.name,
+      messageID: sentMessage.messageID,
+      author: message.senderID,
+      correctAnswer: randomQuestion.answer
+    });
+  } catch (err) {
+    console.error(err);
+    return message.reply(`حدث خطأ: ${err.message}`);
   }
 }
 
-/** @type {TOnCallHandleReply} */
-async function handleReply({ message, global, Currencies, handleReply }) {
+/** @type {TOnReplyCommand} */
+async function handleReply({ message, event, global, Currencies, handleReply }) {
   try {
-    const userAnswer = message.body.trim().toLowerCase();
+    if (event.senderID !== handleReply.author) return;
+
+    const userAnswer = event.body.trim().toLowerCase();
     const correctAnswer = handleReply.correctAnswer.toLowerCase();
 
     if (userAnswer === correctAnswer) {
-      await Currencies.increaseMoney(message.senderID, 50);
-      await message.reply(langData.ar_SY.correct);
-
-      // محاولة حذف رسالة السؤال السابقة
-      if (handleReply.messageID) {
-        try { await global.client.unsendMessage(handleReply.messageID); } catch {}
-      }
+      await Currencies.increaseMoney(event.senderID, 50);
+      message.reply(langData.ar_SY.correct);
     } else {
-      await message.reply(langData.ar_SY.wrong);
+      message.reply(langData.ar_SY.wrong);
     }
-
-    // حذف الصورة المؤقتة
-    if (fs.existsSync(tempImageFilePath)) fs.unlinkSync(tempImageFilePath);
-
-  } catch (error) {
-    console.error(error);
-    await message.reply(`حدث خطأ: ${error.message}`);
+  } catch (err) {
+    console.error(err);
+    return message.reply(`حدث خطأ: ${err.message}`);
   }
 }
 
